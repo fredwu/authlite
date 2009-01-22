@@ -23,7 +23,7 @@ class Authlite_Core {
 	protected $session_column;
 
 	/**
-	 * Create an instance of Auth.
+	 * Create an instance of Authlite.
 	 *
 	 * @param string $config config file name
 	 * @return object
@@ -34,7 +34,7 @@ class Authlite_Core {
 	}
 
 	/**
-	 * Return a static instance of Auth.
+	 * Return a static instance of Authlite.
 	 *
 	 * @return object
 	 */
@@ -43,9 +43,9 @@ class Authlite_Core {
 		static $instance;
 
 		// Load the Authlite instance
-		empty($instance) and $instance = new Authlite($config_name);
+		empty($instance[$config_name]) and $instance[$config_name] = new Authlite($config_name);
 
-		return $instance;
+		return $instance[$config_name];
 	}
 
 	public function __construct($config_name = 'authlite')
