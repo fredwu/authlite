@@ -83,10 +83,11 @@ class Authlite_Core {
 			{
 				$user = ORM::factory($this->user_model)->find(array($this->session_column => $token));
 				
-				if (is_string($user->username))
+				if ($user->loaded)
 				{
 					$status = true;
 					$this->session->set($this->config['session_key'], $user);
+					cookie::set("authlite_{$this->config_name}_autologin", $token, $this->config['lifetime']);
 				}
 			}
 		}
@@ -102,16 +103,12 @@ class Authlite_Core {
 	/**
 	 * Returns the currently logged in user, or FALSE.
 	 *
+	 * @see self::logged_in()
 	 * @return object|false
 	 */
 	public function get_user()
 	{
-		if ($this->logged_in())
-		{
-			return $this->session->get($this->config['session_key']);
-		}
-
-		return false;
+		return $this->logged_in();
 	}
 
 	/**
@@ -133,6 +130,9 @@ class Authlite_Core {
 		
 		if ($user->{$this->password_column} === $this->hash($password))
 		{
+			// Regenerate session_id
+			$this->session->regenerate();
+			
 			$this->session->set($this->config['session_key'], $user);
 			
 			if ($remember == true)
@@ -167,7 +167,7 @@ class Authlite_Core {
 		if ($destroy === true)
 		{
 			// Destroy the session completely
-			Session::instance()->destroy();
+			$this->session->destroy();
 		}
 		else
 		{
