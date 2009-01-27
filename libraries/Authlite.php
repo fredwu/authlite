@@ -115,7 +115,7 @@ class Authlite_Core {
 	/**
 	 * Adds the method to the ignore list
 	 *
-	 * @param string $method 
+	 * @param string|array $method 
 	 * @return void
 	 */
 	public function add_to_ignore($method)
@@ -125,10 +125,10 @@ class Authlite_Core {
 				? $this->ignored_methods[$this->config_name]
 				: array();
 		
-		if ( ! in_array($method, $this->ignored_methods[$this->config_name]))
-		{
-			$this->ignored_methods[$this->config_name][$method] = $method;
-		}
+		$method = is_string($method) ? array($method) : $method;
+		$method = array_combine(array_keys(array_flip($method)), $method);
+		
+		$this->ignored_methods[$this->config_name] = array_merge($this->ignored_methods[$this->config_name], $method);
 		
 		$this->session->set('authlite_ignored_methods', $this->ignored_methods);
 	}
@@ -136,12 +136,14 @@ class Authlite_Core {
 	/**
 	 * Removes the method from the ignore list
 	 *
-	 * @param string $method
+	 * @param string|array $method
 	 * @return void
 	 */
 	public function remove_from_ignore($method)
 	{
-		unset($this->ignored_methods[$this->config_name][$method]);
+		$method = is_string($method) ? array($method) : $method;
+		
+		$this->ignored_methods[$this->config_name] = array_diff($this->ignored_methods[$this->config_name], $method);
 			
 		$this->session->set('authlite_ignored_methods', $this->ignored_methods);
 	}
@@ -153,8 +155,7 @@ class Authlite_Core {
 	 */
 	public function logged_in()
 	{
-		$ignored_methods = $this->session->get('authlite_ignored_methods');
-		if (in_array(Router::$method, $ignored_methods[$this->config_name]))
+		if (in_array(Router::$method, $this->ignored_methods[$this->config_name]))
 		{
 			return true;
 		}
