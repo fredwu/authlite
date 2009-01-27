@@ -1,6 +1,6 @@
 <?php
 /**
- * Authlite library
+ * Authlite library v1.2.1
  * 
  * Based on Kohana's Auth library.
  *
@@ -155,7 +155,7 @@ class Authlite_Core {
 	 */
 	public function logged_in()
 	{
-		if (in_array(Router::$method, $this->ignored_methods[$this->config_name]))
+		if (isset($this->ignored_methods[$this->config_name]) && in_array(Router::$method, $this->ignored_methods[$this->config_name]))
 		{
 			return true;
 		}
