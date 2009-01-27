@@ -14,14 +14,62 @@
  */
 class Authlite_Core {
 	
+	/**
+	 * Controller methods that bypass the login
+	 *
+	 * @var array
+	 */
+	protected $ignored_methods = array();
+	
+	/**
+	 * Kohana session object
+	 *
+	 * @var object
+	 */
 	protected $session;
+	
+	/**
+	 * Configuration instance name
+	 *
+	 * @var string
+	 */
 	protected $config_name;
+	
+	/**
+	 * Kohana config object
+	 *
+	 * @var object
+	 */
 	protected $config;
+	
+	/**
+	 * Configured user model
+	 *
+	 * @var string
+	 */
 	protected $user_model;
+	
+	/**
+	 * Username column
+	 *
+	 * @var string
+	 */
 	protected $username_column;
+	
+	/**
+	 * Password column
+	 *
+	 * @var string
+	 */
 	protected $password_column;
+	
+	/**
+	 * Session column
+	 *
+	 * @var string
+	 */
 	protected $session_column;
-
+	
 	/**
 	 * Create an instance of Authlite.
 	 *
@@ -60,15 +108,57 @@ class Authlite_Core {
 		$this->session_column  = $this->config['session'];
 		
 		Kohana::log('debug', 'Authlite Library loaded');
+		
+		$this->ignored_methods = $this->session->get('authlite_ignored_methods');
+	}
+	
+	/**
+	 * Adds the method to the ignore list
+	 *
+	 * @param string $method 
+	 * @return void
+	 */
+	public function add_to_ignore($method)
+	{
+		$this->ignored_methods[$this->config_name] =
+			isset($this->ignored_methods[$this->config_name])
+				? $this->ignored_methods[$this->config_name]
+				: array();
+		
+		if ( ! in_array($method, $this->ignored_methods[$this->config_name]))
+		{
+			$this->ignored_methods[$this->config_name][$method] = $method;
+		}
+		
+		$this->session->set('authlite_ignored_methods', $this->ignored_methods);
+	}
+	
+	/**
+	 * Removes the method from the ignore list
+	 *
+	 * @param string $method
+	 * @return void
+	 */
+	public function remove_from_ignore($method)
+	{
+		unset($this->ignored_methods[$this->config_name][$method]);
+			
+		$this->session->set('authlite_ignored_methods', $this->ignored_methods);
 	}
 
 	/**
 	 * Check if there is an active session.
 	 *
-	 * @return object|false
+	 * @return object|false|null
 	 */
 	public function logged_in()
 	{
+		$ignored_methods = $this->session->get('authlite_ignored_methods');
+		if (in_array(Router::$method, $ignored_methods[$this->config_name]))
+		{
+			return true;
+		}
+		
 		// Get the user from the session
 		$user = $this->session->get($this->config['session_key']);
 		
@@ -112,7 +202,7 @@ class Authlite_Core {
 	}
 
 	/**
-	 * Attempt to log in a user by using an ORM object and plain-text password.
+	 * Attempts to log in a user
 	 *
 	 * @param string username to log in
 	 * @param string password to check against
@@ -152,7 +242,7 @@ class Authlite_Core {
 	}
 
 	/**
-	 * Log out a user by removing the related session variables.
+	 * Logs out a user by removing the related session variables.
 	 *
 	 * @param boolean $destroy completely destroy the session
 	 * @return boolean
@@ -181,7 +271,13 @@ class Authlite_Core {
 		return ! $this->logged_in();
 	}
 	
-	protected function hash($str)
+	/**
+	 * Hashes a string using the configured hash method
+	 *
+	 * @param string $str 
+	 * @return string
+	 */
+	public function hash($str)
 	{
 		return hash($this->config['hash_method'], $str);
 	}
