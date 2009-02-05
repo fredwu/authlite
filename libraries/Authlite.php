@@ -1,6 +1,6 @@
 <?php
 /**
- * Authlite library v1.2.2
+ * Authlite library v1.2.3
  * 
  * Based on Kohana's Auth library.
  *
@@ -217,9 +217,12 @@ class Authlite_Core {
 			return false;
 		}
 		
-		$user = ORM::factory($this->user_model)->where($this->username_column, $username)->find();
+		$user = ORM::factory($this->user_model)->where(array(
+			$this->username_column => $username,
+			$this->password_column => $this->hash($password)
+		))->find();
 		
-		if ($user->{$this->password_column} === $this->hash($password))
+		if ($user->loaded)
 		{
 			// Regenerate session_id
 			$this->session->regenerate();
