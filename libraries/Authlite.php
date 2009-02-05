@@ -1,6 +1,6 @@
 <?php
 /**
- * Authlite library v1.2.1
+ * Authlite library v1.2.2
  * 
  * Based on Kohana's Auth library.
  *
@@ -240,6 +240,29 @@ class Authlite_Core {
 		{
 			return false;
 		}
+	}
+	
+	/**
+	 * Forces a user to be logged in without a password
+	 *
+	 * @param string|object $username 
+	 * @return object|false
+	 */
+	public function force_login($username)
+	{
+		if ( ! is_object($username))
+		{
+			$user = ORM::factory($this->user_model)->where($this->username_column, $username)->find();
+		}
+		
+		if ($user->loaded)
+		{
+			$this->session->regenerate();
+			$this->session->set($this->config['session_key'], $user);
+			return $user;
+		}
+		
+		return false;
 	}
 
 	/**
