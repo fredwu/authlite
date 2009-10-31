@@ -1,18 +1,21 @@
 <?php
 /**
- * Authlite library v1.2.3
+ * Authlite library v2.0 Alpha 1
  * 
  * Based on Kohana's Auth library.
  *
- * @package		Layerful
- * @subpackage	Modules
- * @author		Layerful Team <http://layerful.org/>
- * @author		Fred Wu <fred@beyondcoding.com>
- * @copyright	BeyondCoding
- * @license		http://layerful.org/license MIT
- * @since		0.3.0
+ * @author		Fred Wu <fred@wuit.com>
+ * @copyright	Wuit
+ * @license		http://www.opensource.org/licenses/mit-license.php
  */
-class Authlite_Core {
+class Authlite {
+	
+	/**
+	 * Authlite instances
+	 *
+	 * @var array
+	 */
+	protected static $instances;
 	
 	/**
 	 * Controller methods that bypass the login
@@ -88,12 +91,10 @@ class Authlite_Core {
 	 */
 	public static function instance($config_name = 'authlite')
 	{
-		static $instance;
-
 		// Load the Authlite instance
-		empty($instance[$config_name]) and $instance[$config_name] = new Authlite($config_name);
+		empty(Authlite::$instances[$config_name]) and Authlite::$instances[$config_name] = new Authlite($config_name);
 
-		return $instance[$config_name];
+		return Authlite::$instances[$config_name];
 	}
 
 	public function __construct($config_name = 'authlite')
@@ -107,7 +108,7 @@ class Authlite_Core {
 		$this->password_column = $this->config['password'];
 		$this->session_column  = $this->config['session'];
 		
-		Kohana::log('debug', 'Authlite Library loaded');
+		Kohana_Log::instance()->add('debug', 'Authlite Library loaded');
 		
 		$this->ignored_methods = $this->session->get('authlite_ignored_methods');
 	}
@@ -168,17 +169,17 @@ class Authlite_Core {
 		// Get the user from the cookie
 		if ($status == false)
 		{
-			$token = cookie::get("authlite_{$this->config_name}_autologin");
+			$token = Cookie::get("authlite_{$this->config_name}_autologin");
 			
 			if (is_string($token))
 			{
 				$user = ORM::factory($this->user_model)->find(array($this->session_column => $token));
 				
-				if ($user->loaded)
+				if (is_object($user))
 				{
 					$status = true;
 					$this->session->set($this->config['session_key'], $user);
-					cookie::set("authlite_{$this->config_name}_autologin", $token, $this->config['lifetime']);
+					Cookie::set("authlite_{$this->config_name}_autologin", $token, $this->config['lifetime']);
 				}
 			}
 		}
@@ -217,12 +218,12 @@ class Authlite_Core {
 			return false;
 		}
 		
-		$user = ORM::factory($this->user_model)->where(array(
-			$this->username_column => $username,
-			$this->password_column => $this->hash($password)
-		))->find();
+		$user = ORM::factory($this->user_model)
+				->where($this->username_column, '=', $username)
+				->where($this->password_column, '=', $this->hash($password))
+				->find();
 		
-		if ($user->loaded)
+		if (is_object($user))
 		{
 			// Regenerate session_id
 			$this->session->regenerate();
@@ -231,10 +232,10 @@ class Authlite_Core {
 			
 			if ($remember == true)
 			{
-				$token = $this->session->id();
+				$token = session_id();
 				$user->{$this->session_column} = $token;
 				$user->save();
-				cookie::set("authlite_{$this->config_name}_autologin", $token, $this->config['lifetime']);
+				Cookie::set("authlite_{$this->config_name}_autologin", $token, $this->config['lifetime']);
 			}
 			
 			return $user;
@@ -276,9 +277,9 @@ class Authlite_Core {
 	 */
 	public function logout($destroy = false)
 	{
-		if (cookie::get("authlite_{$this->config_name}_autologin"))
+		if (Cookie::get("authlite_{$this->config_name}_autologin"))
 		{
-			cookie::delete("authlite_{$this->config_name}_autologin");
+			Cookie::delete("authlite_{$this->config_name}_autologin");
 		}
 		
 		if ($destroy === true)
