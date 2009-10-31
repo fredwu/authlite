@@ -3,6 +3,7 @@
 class Controller_User extends Controller
 {
 	public $authlite;
+	public $user;
 	
 	public function before()
 	{
