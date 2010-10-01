@@ -223,7 +223,7 @@ class Authlite {
 				->where($this->password_column, '=', $this->hash($password))
 				->find();
 		
-		if ($user->loaded)
+		if ($user->loaded())
 		{
 			// Regenerate session_id
 			$this->session->regenerate();
