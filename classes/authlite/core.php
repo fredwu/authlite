@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
 /**
- * Authlite library v2.0 Alpha 2
- * 
+ * Authlite library v2.0.0.beta.1
+ *
  * Based on Kohana's Auth library.
  *
  * @author		Fred Wu <fred@wuit.com>
