@@ -156,7 +156,7 @@ class Authlite_Core {
 	 */
 	public function logged_in()
 	{
-		if (isset($this->ignored_methods[$this->config_name]) && in_array(Router::$method, $this->ignored_methods[$this->config_name]))
+		if (isset($this->ignored_methods[$this->config_name]) && in_array(Request::instance()->action, $this->ignored_methods[$this->config_name]))
 		{
 			return true;
 		}
