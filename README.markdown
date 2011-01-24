@@ -1,3 +1,5 @@
+[![](http://stillmaintained.com/fredwu/authlite.png)](http://stillmaintained.com/fredwu/authlite)
+
 # Authlite - A Simple Authentication module for Kohana
 
 Authlite is a simple and lightweight authentication module based on the official Kohana _Auth_ module. It is compatible with _Auth_ and does not force the concept of `roles`.
